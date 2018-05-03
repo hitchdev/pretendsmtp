@@ -1,0 +1,1 @@
+from pretendsmtp.server import pretend_smtp_server
