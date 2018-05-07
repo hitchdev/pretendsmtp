@@ -28,3 +28,7 @@ Receive simple email:
     with python 3.6:
       given:
         python version: 3.6.5
+        
+    with python 3.7:
+      given:
+        python version: 3.7-dev

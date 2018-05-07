@@ -116,7 +116,10 @@ class Engine(BaseEngine):
     
     def on_failure(self, result):
         if hasattr(self, 'running_code'):
-            print(self.running_code.iprocess.screenshot())
+            if self.running_code.finished:
+                print(self.running_code.iprocess._final_screenshot)
+            else:
+                print(self.running_code.iprocess.screenshot())
         
     
     def tear_down(self):
