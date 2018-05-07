@@ -19,7 +19,10 @@ class MockSMTPServer(smtpd.SMTPServer):
 
     def process_message(self, host, email_from, email_to, data, **kwargs):
         """Parse SMTP message and log it to the console as JSON."""
-        parsed_message = Parser().parsestr(data)
+        if sys.version_info[0:2] >= (3, 6):
+            parsed_message = Parser().parsestr(data.decode('utf8'))
+        else:
+            parsed_message = Parser().parsestr(data)
         links_regex = re.compile(r"(https?://\S+)")
 
         if parsed_message.is_multipart():

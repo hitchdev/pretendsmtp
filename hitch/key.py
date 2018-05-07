@@ -3,7 +3,7 @@ from hitchstory import validate, expected_exception
 from hitchrun import expected
 from icommandlib import ICommand, ICommandError
 from commandlib import Command, CommandError, python
-from strictyaml import Str, Map, MapPattern, Bool, Optional, load
+from strictyaml import Str, Map, Seq, Int, MapPattern, Bool, Optional, load
 from pathquery import pathquery
 from hitchrun import hitch_maintenance
 from hitchrun import DIR
@@ -14,6 +14,8 @@ from templex import Templex, NonMatching
 from path import Path
 import hitchbuildpy
 import dirtemplate
+import smtplib
+
 
 
 def project_build(paths, python_version):
@@ -65,74 +67,15 @@ class Engine(BaseEngine):
         self.example_py_code = ExamplePythonCode(self.python, self.path.state)\
             .with_code(self.given.get('code', ''))\
             .with_setup_code(self.given.get('setup', ''))\
-            .with_terminal_size(160, 100)\
+            .with_terminal_size(500, 200)\
             .with_long_strings()
 
-    @expected_exception(NonMatching)
     @expected_exception(HitchRunPyException)
-    @validate(
-        code=Str(),
-        will_output=Map({"in python 2": Str(), "in python 3": Str()}) | Str(),
-        raises=Map({
-            Optional("type"): Map({"in python 2": Str(), "in python 3": Str()}) | Str(),
-            Optional("message"): Map({"in python 2": Str(), "in python 3": Str()}) | Str(),
-        }),
-        in_interpreter=Bool(),
-    )
-    def run(self, code, will_output=None, raises=None, in_interpreter=False):
-        if in_interpreter:
-            code = '{0}\nprint(repr({1}))'.format(
-                '\n'.join(code.strip().split('\n')[:-1]),
-                code.strip().split('\n')[-1]
-            )
+    def start_server(self, code):
         to_run = self.example_py_code.with_code(code)
 
-        if self.settings.get("cprofile"):
-            to_run = to_run.with_cprofile(
-                self.path.profile.joinpath("{0}.dat".format(self.story.slug))
-            )
+        self.running_code = to_run.expect_exceptions().running_code()
 
-        result = to_run.expect_exceptions().run() if raises is not None else to_run.run()
-
-        if will_output is not None:
-            actual_output = '\n'.join([line.rstrip() for line in result.output.split("\n")])
-            try:
-                Templex(will_output).assert_match(actual_output)
-            except NonMatching:
-                if self.settings.get("rewrite"):
-                    self.current_step.update(**{"will output": actual_output})
-                else:
-                    raise
-
-        if raises is not None:
-            differential = False  # Difference between python 2 and python 3 output?
-            exception_type = raises.get('type')
-            message = raises.get('message')
-
-            if exception_type is not None:
-                if not isinstance(exception_type, str):
-                    differential = True
-                    exception_type = exception_type['in python 2']\
-                        if self.given['python version'].startswith("2")\
-                        else exception_type['in python 3']
-
-            if message is not None:
-                if not isinstance(message, str):
-                    differential = True
-                    message = message['in python 2']\
-                        if self.given['python version'].startswith("2")\
-                        else message['in python 3']
-
-            try:
-                result = self.example_py_code.expect_exceptions().run()
-                result.exception_was_raised(exception_type, message)
-            except ExpectedExceptionMessageWasDifferent as error:
-                if self.settings.get("rewrite") and not differential:
-                    new_raises = raises.copy()
-                    new_raises['message'] = result.exception.message
-                    self.current_step.update(raises=new_raises)
-                else:
-                    raise
 
     @validate(files=MapPattern(Str(), Str()))
     def files_present(self, files):
@@ -155,15 +98,31 @@ class Engine(BaseEngine):
             #)
 
 
-    def do_nothing(self):
-        pass
+    @expected_exception(smtplib.SMTPServerDisconnected)
+    @validate(to_mails=Seq(Str()), port=Int())
+    def send_email_to_localhost(self, from_mail, to_mails, message, port):
+        smtp_sender = smtplib.SMTP('localhost', port)
+        smtp_sender.sendmail(
+            from_mail, to_mails, message,
+        )
+
+    def sleep(self, duration):
+        import time
+        time.sleep(float(duration))
 
     def pause(self, message="Pause"):
         import IPython
         IPython.embed()
     
+    def on_failure(self, result):
+        if hasattr(self, 'running_code'):
+            print(self.running_code.iprocess.screenshot())
+        
+    
     def tear_down(self):
-        pass
+        if hasattr(self, 'running_code'):
+            if not self.running_code.finished:
+                self.running_code.iprocess.kill()
 
 
 

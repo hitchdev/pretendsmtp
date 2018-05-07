@@ -9,7 +9,7 @@ dirtemplate==0.1.4
 first==2.0.1              # via pip-tools
 flake8==3.3.0
 hitchbuild==0.3.3
-hitchbuildpy==0.3.4
+hitchbuildpy==0.4.0
 hitchdoc==0.1.1
 hitchrun==0.2.9
 hitchrunpy==0.6.0
