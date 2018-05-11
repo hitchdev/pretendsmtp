@@ -2,8 +2,6 @@ Receive simple email:
   description: |
     This story demonstrates PretendSMTP receiving an
     email and dumping it to file.
-  given:
-    python version: 3.6.5
   steps:
   - Start server: |
       from pretendsmtp import pretend_smtp_server
@@ -19,16 +17,3 @@ Receive simple email:
   - Files present:
       files:
         mail/1.message: message
-
-  variations:
-    with python 3.5:
-      given:
-        python version: 3.5.0
-        
-    with python 3.6:
-      given:
-        python version: 3.6.5
-        
-    with python 3.7:
-      given:
-        python version: 3.7-dev

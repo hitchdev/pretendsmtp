@@ -1,5 +1,4 @@
 import smtpd
-import email
 import json
 import re
 import sys
@@ -32,7 +31,9 @@ class MockSMTPServer(smtpd.SMTPServer):
                 payload_dict = dict(message)
                 payload_dict['filename'] = message.get_filename()
                 payload_dict['content'] = message.get_payload(decode=True).decode("utf-8")
-                payload_dict['links'] = re.findall(links_regex, message.get_payload(decode=True).decode("utf-8"))
+                payload_dict['links'] = re.findall(
+                    links_regex, message.get_payload(decode=True).decode("utf-8")
+                )
                 links = links + payload_dict['links']
                 payload.append(payload_dict)
         else:
@@ -44,14 +45,18 @@ class MockSMTPServer(smtpd.SMTPServer):
         email_regex = re.compile(r"^(.*?)\<(.*?)\>$")
 
         if header_from:
-            header_from_name = email_regex.match(header_from).group(1).strip() if email_regex.match(header_from) else None
-            header_from_email = email_regex.match(header_from).group(2) if email_regex.match(header_from) else None
+            header_from_name = email_regex.match(header_from).group(1).strip()\
+                if email_regex.match(header_from) else None
+            header_from_email = email_regex.match(header_from).group(2)\
+                if email_regex.match(header_from) else None
         else:
             header_from_name = header_from_email = None
 
         if header_to:
-            header_to_name = email_regex.match(header_to).group(1).strip() if email_regex.match(header_to) else None
-            header_to_email = email_regex.match(header_to).group(2) if email_regex.match(header_to) else None
+            header_to_name = email_regex.match(header_to).group(1).strip()\
+                if email_regex.match(header_to) else None
+            header_to_email = email_regex.match(header_to).group(2)\
+                if email_regex.match(header_to) else None
         else:
             header_to_name = header_to_email = None
 
@@ -71,14 +76,15 @@ class MockSMTPServer(smtpd.SMTPServer):
             'payload': payload,
             'links': links,
         }
-        
+
         self.counter = self.counter + 1
         Path("{0}.message".format(self.counter)).write_text(payload)
-        
+
         sys.stdout.write(json.dumps(dict_message))
         sys.stdout.write('\n')
         sys.stdout.flush()
 
+        """
         if len(email_to) > 0:
             if email_to[0].endswith("@smtperrors.com"):
                 name = email_to[0].replace("@smtperrors.com", "")
@@ -86,4 +92,4 @@ class MockSMTPServer(smtpd.SMTPServer):
                     return smtperrors.errors[name]
                 else:
                     raise Exception("{0} was not found in the list of SMTP errors.")
-
+        """

@@ -1,21 +1,17 @@
 from hitchstory import StoryCollection, StorySchema, BaseEngine, HitchStoryException
 from hitchstory import validate, expected_exception
 from hitchrun import expected
-from icommandlib import ICommand, ICommandError
 from commandlib import Command, CommandError, python
 from strictyaml import Str, Map, Seq, Int, MapPattern, Bool, Optional, load
 from pathquery import pathquery
 from hitchrun import hitch_maintenance
 from hitchrun import DIR
 from hitchrun.decorators import ignore_ctrlc
-from hitchrunpy import ExamplePythonCode, HitchRunPyException, ExpectedExceptionMessageWasDifferent
-import requests
-from templex import Templex, NonMatching
-from path import Path
+from hitchrunpy import ExamplePythonCode, HitchRunPyException
+from templex import Templex
 import hitchbuildpy
 import dirtemplate
 import smtplib
-
 
 
 def project_build(paths, python_version):
@@ -61,7 +57,7 @@ class Engine(BaseEngine):
 
         self.python = project_build(
             self.path,
-            self.given['python version'],
+            self.given.get('python version', '3.6.5'),
         ).bin.python
 
         self.example_py_code = ExamplePythonCode(self.python, self.path.state)\
@@ -76,7 +72,6 @@ class Engine(BaseEngine):
 
         self.running_code = to_run.expect_exceptions().running_code()
 
-
     @validate(files=MapPattern(Str(), Str()))
     def files_present(self, files):
         for filename, content in files.items():
@@ -88,15 +83,6 @@ class Engine(BaseEngine):
                 Templex(content).assert_match(filepath.text())
             except AssertionError as error:
                 raise AssertionError("{0} is nonmatching:\n\n{1}".format(filename, error))
-
-        #actual_files = list(pathquery(self.path.state.joinpath("built", "example")).is_not_dir())
-
-        #assert len(actual_files) == len(files.keys()), \
-            #"{0} Should be:\n\n{0}\n\nAre actually:\n\n{1}\n".format(
-                #'\n'.join(files.keys()),
-                #'\n'.join(actual_files),
-            #)
-
 
     @expected_exception(smtplib.SMTPServerDisconnected)
     @validate(to_mails=Seq(Str()), port=Int())
@@ -113,20 +99,18 @@ class Engine(BaseEngine):
     def pause(self, message="Pause"):
         import IPython
         IPython.embed()
-    
+
     def on_failure(self, result):
         if hasattr(self, 'running_code'):
             if self.running_code.finished:
                 print(self.running_code.iprocess._final_screenshot)
             else:
                 print(self.running_code.iprocess.screenshot())
-        
-    
+
     def tear_down(self):
         if hasattr(self, 'running_code'):
             if not self.running_code.finished:
                 self.running_code.iprocess.kill()
-
 
 
 def _storybook(settings):
@@ -146,7 +130,7 @@ def _personal_settings():
             "  rewrite: no\n"
             "  cprofile: no\n"
             "params:\n"
-            "  python version: 3.5.0\n"
+            "  python version: 3.6.3\n"
         ))
     return load(
         settings_file.bytes().decode('utf8'),
@@ -196,11 +180,8 @@ def regression():
     Run regression testing - lint and then run all tests.
     """
     lint()
-    doctest()
     storybook = _storybook({}).only_uninherited()
-    storybook.with_params(**{"python version": "2.7.10"})\
-             .filter(lambda story: not story.info['fails on python 2'])\
-             .ordered_by_name().play()
+    storybook.with_params(**{"python version": "3.6.3"}).ordered_by_name().play()
     storybook.with_params(**{"python version": "3.5.0"}).ordered_by_name().play()
 
 

@@ -9,7 +9,7 @@ dirtemplate==0.1.4
 first==2.0.1              # via pip-tools
 flake8==3.3.0
 hitchbuild==0.3.3
-hitchbuildpy==0.4.2
+hitchbuildpy==0.4.3
 hitchdoc==0.1.1
 hitchrun==0.2.9
 hitchrunpy==0.6.1
@@ -49,6 +49,7 @@ q==2.6
 requests-toolbelt==0.8.0  # via twine
 requests==2.17.3          # via requests-toolbelt, twine
 ruamel.yaml==0.15.34      # via strictyaml
+selenium==3.12.0
 simex==0.3.5
 simplegeneric==0.8.1      # via ipython
 six==1.10.0               # via pip-tools, prompt-toolkit, python-dateutil, traitlets

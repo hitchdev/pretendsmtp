@@ -4,6 +4,7 @@ hitchstory>=0.8.0
 hitchrunpy>=0.6.1
 hitchbuildpy>=0.4.3
 hitchbuild>=0.3.3
+selenium
 icommandlib
 pathquery>=0.2.5
 hitchrun
