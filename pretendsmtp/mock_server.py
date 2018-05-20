@@ -1,13 +1,18 @@
+from path import Path
+import jinja2
 import smtpd
 import json
 import re
 import sys
-from path import Path
+
 
 if sys.version_info[0] >= 3:
     from email.parser import Parser
 else:
     from email.Parser import Parser
+
+
+THIS_DIRECTORY = Path(__file__).realpath().dirname()
 
 
 class MockSMTPServer(smtpd.SMTPServer):
@@ -22,23 +27,18 @@ class MockSMTPServer(smtpd.SMTPServer):
             parsed_message = Parser().parsestr(data.decode('utf8'))
         else:
             parsed_message = Parser().parsestr(data)
-        links_regex = re.compile(r"(https?://\S+)")
+        
+        #links_regex = re.compile(r"(https?://\S+)")
 
         if parsed_message.is_multipart():
             payload = []
-            links = []
             for message in parsed_message.get_payload():
                 payload_dict = dict(message)
                 payload_dict['filename'] = message.get_filename()
                 payload_dict['content'] = message.get_payload(decode=True).decode("utf-8")
-                payload_dict['links'] = re.findall(
-                    links_regex, message.get_payload(decode=True).decode("utf-8")
-                )
-                links = links + payload_dict['links']
                 payload.append(payload_dict)
         else:
             payload = parsed_message.get_payload()
-            links = re.findall(links_regex, payload)
 
         header_from = parsed_message.get('From')
         header_to = parsed_message.get('To')
@@ -74,11 +74,18 @@ class MockSMTPServer(smtpd.SMTPServer):
             'contenttype': parsed_message.get_content_type(),
             'multipart': parsed_message.is_multipart(),
             'payload': payload,
-            'links': links,
         }
 
         self.counter = self.counter + 1
-        Path("{0}.message".format(self.counter)).write_text(payload)
+        Path("{0}.message".format(self.counter)).write_text(
+            json.dumps(dict_message, indent=4)
+        )
+        
+        Path("{0}.html".format(self.counter)).write_text(
+            jinja2.Template(
+                THIS_DIRECTORY.joinpath("email.jinja2").text()
+            ).render(**dict_message)
+        )
 
         sys.stdout.write(json.dumps(dict_message))
         sys.stdout.write('\n')

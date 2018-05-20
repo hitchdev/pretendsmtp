@@ -11,7 +11,9 @@ from hitchrunpy import ExamplePythonCode, HitchRunPyException
 from templex import Templex
 import hitchbuildpy
 import dirtemplate
+import icommandlib
 import smtplib
+import json
 
 
 def project_build(paths, python_version):
@@ -63,27 +65,69 @@ class Engine(BaseEngine):
         self.example_py_code = ExamplePythonCode(self.python, self.path.state)\
             .with_code(self.given.get('code', ''))\
             .with_setup_code(self.given.get('setup', ''))\
-            .with_terminal_size(500, 200)\
+            .with_terminal_size(500, 500)\
             .with_long_strings()
 
+    @expected_exception(icommandlib.exceptions.ICommandError)
     @expected_exception(HitchRunPyException)
-    def start_server(self, code):
+    def start_server(self, code, and_wait_until_code_prints):
         to_run = self.example_py_code.with_code(code)
 
         self.running_code = to_run.expect_exceptions().running_code()
+        self.running_code.iprocess.wait_until_output_contains(and_wait_until_code_prints)
 
-    @validate(files=MapPattern(Str(), Str()))
-    def files_present(self, files):
-        for filename, content in files.items():
-            filepath = self.path.state.joinpath(filename)
+    @expected_exception(AssertionError)
+    def json_file_present(self, filename, content):
+        filepath = self.path.state.joinpath(filename)
 
-            assert filepath.exists(), "{0} does not exist".format(filename)
+        assert filepath.exists(), "{0} does not exist".format(filename)
 
+        try:
+            assert json.loads(content) == json.loads(filepath.text()), \
+              "Expected:\n {0}\n\nGot:\n\n{1}\n".format(
+                  content,
+                  filepath.text(),
+              )
+        except json.decoder.JSONDecodeError:
             try:
-                Templex(content).assert_match(filepath.text())
-            except AssertionError as error:
-                raise AssertionError("{0} is nonmatching:\n\n{1}".format(filename, error))
+                json.loads(content)
+            except json.decoder.JSONDecodeError:
+                raise AssertionError("EXPECTED:\n\n{0}\n\nis not JSON".format(content))
+            
+            try:
+                json.loads(filepath.text())
+            except json.decoder.JSONDecodeError:
+                raise AssertionError("ACTUAL:\n\n{0}\n\nis not JSON".format(filepath.text()))
 
+        except AssertionError:
+            if self.settings.get("rewrite"):
+                self.current_step.update(
+                    **{"content": json.dumps(json.loads(filepath.text()), indent=4)}
+                )
+            else:
+                raise AssertionError("{0} is nonmatching:\n\n{1}".format(filename, error))
+    
+    
+    @expected_exception(AssertionError)
+    def html_file_present(self, filename, content):
+        filepath = self.path.state.joinpath(filename)
+
+        assert filepath.exists(), "{0} does not exist".format(filename)
+
+        try:
+            assert content == filepath.text(), \
+              "Expected:\n {0}\n\nGot:\n\n{1}\n".format(
+                  content,
+                  filepath.text(),
+              )
+        except AssertionError as error:
+            if self.settings.get("rewrite"):
+                self.current_step.update(**{"content": filepath.text()})
+            else:
+                raise AssertionError("{0} is nonmatching:\n\n{1}".format(filename, error))
+    
+
+    @expected_exception(ConnectionRefusedError)
     @expected_exception(smtplib.SMTPServerDisconnected)
     @validate(to_mails=Seq(Str()), port=Int())
     def send_email_to_localhost(self, from_mail, to_mails, message, port):
@@ -105,7 +149,11 @@ class Engine(BaseEngine):
             if self.running_code.finished:
                 print(self.running_code.iprocess._final_screenshot)
             else:
-                print(self.running_code.iprocess.screenshot())
+                print(self.running_code.iprocess.stripshot())
+
+    def on_success(self):
+        if self.settings.get("rewrite"):
+            self.new_story.save()
 
     def tear_down(self):
         if hasattr(self, 'running_code'):
@@ -153,6 +201,19 @@ def bdd(*keywords):
     """
     settings = _personal_settings().data
     _storybook(settings['engine'])\
+        .with_params(**{"python version": settings['params']['python version']})\
+        .only_uninherited()\
+        .shortcut(*keywords).play()
+      
+      
+@expected(HitchStoryException)
+def rbdd(*keywords):
+    """
+    Run stories matching keywords and rewrite.
+    """
+    settings = _personal_settings().data
+    #settings['rewrite'] = True
+    _storybook({"rewrite": True})\
         .with_params(**{"python version": settings['params']['python version']})\
         .only_uninherited()\
         .shortcut(*keywords).play()

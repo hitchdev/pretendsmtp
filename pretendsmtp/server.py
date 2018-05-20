@@ -1,8 +1,13 @@
 from commandlib import python_bin
 from pretendsmtp.mock_server import MockSMTPServer
+from path import Path
 import asyncore
 import signal
 import sys
+import os
+
+
+INCLUDE_PATH = Path(__file__).realpath().dirname() / "include"
 
 
 def pretend_smtp_server(port="10025"):
@@ -17,8 +22,7 @@ def main():
                          " and usually inadvisable.\n\n")
         sys.stderr.flush()
 
-    sys.stdout.write("SMTP SERVER RUNNING\n")
-    sys.stdout.flush()
+    INCLUDE_PATH.copytree(Path(os.getcwd()) / "include")
 
     smtp_server = MockSMTPServer(('localhost', port_number), None)
 
@@ -29,4 +33,6 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
+    sys.stdout.write("SMTP SERVER RUNNING\n")
+    sys.stdout.flush()
     asyncore.loop()

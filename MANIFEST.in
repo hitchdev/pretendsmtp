@@ -1,2 +1,4 @@
 include VERSION
 include LICENSE.txt
+include pretendsmtp/include/*
+include pretendsmtp/email.jinja2
