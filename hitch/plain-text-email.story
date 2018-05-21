@@ -53,7 +53,7 @@ Receive simple email:
         <div class="container-fluid">
           <div class="row">
             <div class="col-sm-4">From: alice@example.org</div>
-            <div class="col-sm-4">To: ['bob@example.org']</div>
+            <div class="col-sm-4">To: bob@example.org</div>
           </div>
           <div class="row">
             <div class="col-sm-8">Subject: None</div>
