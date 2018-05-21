@@ -44,6 +44,6 @@ setup(name="pretendsmtp",
       packages=find_packages(exclude=["tests", "hitch", "docs", ]),
       package_data={},
       zip_safe=False,
-      entry_points=dict(console_scripts=['pretendsmtp=pretendsmtp:server.main', ]),
+      entry_points=dict(console_scripts=['pretendsmtp=pretendsmtp:commandline.main', ]),
       include_package_data=True,
 )
