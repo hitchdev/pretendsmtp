@@ -18,9 +18,11 @@ def main():
     if sys.argv[1] == "server":
         port_number = int(sys.argv[2])
         if port_number < 1024:
-            sys.stderr.write("WARNING: Using a port below 1024 to run test Internet services"
-                            " on is normally prohibited for non-root users, "
-                            " and usually inadvisable.\n\n")
+            sys.stderr.write(
+                "WARNING: Using a port below 1024 to run test Internet services"
+                " on is normally prohibited for non-root users, "
+                " and usually inadvisable.\n\n"
+            )
             sys.stderr.flush()
 
         INCLUDE_PATH.copytree(Path(os.getcwd()) / "include")

@@ -2,13 +2,12 @@ from hitchstory import StoryCollection, StorySchema, BaseEngine, HitchStoryExcep
 from hitchstory import validate, expected_exception
 from hitchrun import expected
 from commandlib import Command, CommandError, python
-from strictyaml import Str, Map, Seq, Int, MapPattern, Bool, Optional, load
+from strictyaml import Str, Map, Seq, Int, Bool, Optional, load
 from pathquery import pathquery
 from hitchrun import hitch_maintenance
 from hitchrun import DIR
 from hitchrun.decorators import ignore_ctrlc
 from hitchrunpy import ExamplePythonCode, HitchRunPyException
-from templex import Templex
 import hitchbuildpy
 import dirtemplate
 import icommandlib
@@ -93,7 +92,7 @@ class Engine(BaseEngine):
                 json.loads(content)
             except json.decoder.JSONDecodeError:
                 raise AssertionError("EXPECTED:\n\n{0}\n\nis not JSON".format(content))
-            
+
             try:
                 json.loads(filepath.text())
             except json.decoder.JSONDecodeError:
@@ -105,9 +104,8 @@ class Engine(BaseEngine):
                     **{"content": json.dumps(json.loads(filepath.text()), indent=4)}
                 )
             else:
-                raise AssertionError("{0} is nonmatching:\n\n{1}".format(filename, error))
-    
-    
+                raise AssertionError("{0} is nonmatching:\n\n{1}".format(filepath.text(), content))
+
     @expected_exception(AssertionError)
     def html_file_present(self, filename, content):
         filepath = self.path.state.joinpath(filename)
@@ -125,7 +123,6 @@ class Engine(BaseEngine):
                 self.current_step.update(**{"content": filepath.text()})
             else:
                 raise AssertionError("{0} is nonmatching:\n\n{1}".format(filename, error))
-    
 
     @expected_exception(ConnectionRefusedError)
     @expected_exception(smtplib.SMTPServerDisconnected)
@@ -135,6 +132,23 @@ class Engine(BaseEngine):
         smtp_sender.sendmail(
             from_mail, to_mails, message,
         )
+
+    @expected_exception(ConnectionRefusedError)
+    @expected_exception(smtplib.SMTPServerDisconnected)
+    @validate(to_mails=Seq(Str()), port=Int())
+    def send_email(
+        self, port, subject, from_mail, to_mails, plain_message, html_message=None,
+    ):
+        from mailer import Mailer
+        from mailer import Message
+
+        message = Message(From=from_mail, To=to_mails, charset="utf-8")
+        message.Subject = subject
+        message.Html = html_message
+        message.Body = plain_message
+
+        sender = Mailer('localhost', port=port)
+        sender.send(message)
 
     def sleep(self, duration):
         import time
@@ -204,15 +218,14 @@ def bdd(*keywords):
         .with_params(**{"python version": settings['params']['python version']})\
         .only_uninherited()\
         .shortcut(*keywords).play()
-      
-      
+
+
 @expected(HitchStoryException)
 def rbdd(*keywords):
     """
     Run stories matching keywords and rewrite.
     """
     settings = _personal_settings().data
-    #settings['rewrite'] = True
     _storybook({"rewrite": True})\
         .with_params(**{"python version": settings['params']['python version']})\
         .only_uninherited()\

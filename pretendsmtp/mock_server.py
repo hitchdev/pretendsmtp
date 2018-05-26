@@ -27,8 +27,6 @@ class MockSMTPServer(smtpd.SMTPServer):
             parsed_message = Parser().parsestr(data.decode('utf8'))
         else:
             parsed_message = Parser().parsestr(data)
-        
-        #links_regex = re.compile(r"(https?://\S+)")
 
         if parsed_message.is_multipart():
             payload = []
@@ -80,7 +78,7 @@ class MockSMTPServer(smtpd.SMTPServer):
         Path("{0}.message".format(self.counter)).write_text(
             json.dumps(dict_message, indent=4)
         )
-        
+
         Path("{0}.html".format(self.counter)).write_text(
             jinja2.Template(
                 THIS_DIRECTORY.joinpath("email.jinja2").text()

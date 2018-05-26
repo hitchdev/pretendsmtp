@@ -1,4 +1,4 @@
-Receive plain text email:
+Receive HTML email:
   description: |
     This story demonstrates PretendSMTP receiving an
     email and dumping it to file as JSON.
@@ -13,8 +13,9 @@ Receive plain text email:
       from mail: alice@example.org
       to mails:
       - bob@example.org
-      subject: my subject
-      plain message: my message
+      subject: My subject
+      plain message: Plain message alternative
+      html message: <html><body>My HTML message</body></html>
       port: 10025
   - Sleep: 0.5
   - JSON File present:
@@ -31,11 +32,26 @@ Receive plain text email:
             "header_to_name": null,
             "header_from_email": null,
             "header_to_email": null,
-            "subject": "my subject",
-            "date": "Sat, 26 May 2018 08:59:25 +0000",
-            "contenttype": "text/plain",
-            "multipart": false,
-            "payload": "bXkgbWVzc2FnZQ=="
+            "subject": "My subject",
+            "date": "Sat, 26 May 2018 08:59:02 +0000",
+            "contenttype": "multipart/alternative",
+            "multipart": true,
+            "payload": [
+                {
+                    "Content-Type": "text/plain; charset=\"utf-8\"",
+                    "MIME-Version": "1.0",
+                    "Content-Transfer-Encoding": "base64",
+                    "filename": null,
+                    "content": "Plain message alternative"
+                },
+                {
+                    "Content-Type": "text/html; charset=\"utf-8\"",
+                    "MIME-Version": "1.0",
+                    "Content-Transfer-Encoding": "base64",
+                    "filename": null,
+                    "content": "<html><body>My HTML message</body></html>"
+                }
+            ]
         }
 
   - HTML File present:
@@ -57,10 +73,10 @@ Receive plain text email:
             <div class="col-sm-4">To: bob@example.org</div>
           </div>
           <div class="row">
-            <div class="col-sm-8">Subject: my subject</div>
+            <div class="col-sm-8">Subject: My subject</div>
           </div>
           <div class="row">
-            bXkgbWVzc2FnZQ==
+            [{'Content-Type': 'text/plain; charset="utf-8"', 'MIME-Version': '1.0', 'Content-Transfer-Encoding': 'base64', 'filename': None, 'content': 'Plain message alternative'}, {'Content-Type': 'text/html; charset="utf-8"', 'MIME-Version': '1.0', 'Content-Transfer-Encoding': 'base64', 'filename': None, 'content': '<html><body>My HTML message</body></html>'}]
           </div>
         </div>
         </body>
