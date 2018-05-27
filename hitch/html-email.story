@@ -36,8 +36,20 @@ Receive HTML email:
             "contenttype": "multipart/alternative",
             "multipart": true,
             "payload": [
-                "",
-                "<html><body>My HTML message</body></html>"
+                {
+                    "filename": null,
+                    "content-type": "text/plain",
+                    "content-charset": "utf-8",
+                    "transfer-encoding": "base64",
+                    "content": ""
+                },
+                {
+                    "filename": null,
+                    "content-type": "text/html",
+                    "content-charset": "utf-8",
+                    "transfer-encoding": "base64",
+                    "content": "<html><body>My HTML message</body></html>"
+                }
             ]
         }
 
@@ -56,21 +68,35 @@ Receive HTML email:
 
         <div class="container-fluid">
           <div class="row">
-            <div class="col-sm-4">From: alice@example.org</div>
-            <div class="col-sm-4">To: bob@example.org</div>
+            <div class="col-sm-4"><h4>From: alice@example.org</h4></div>
+            <div class="col-sm-4"><h4>To: bob@example.org</h4></div>
           </div>
           <div class="row">
-            <div class="col-sm-8">Subject: My subject</div>
+            <div class="col-sm-8"><h4>Subject: My subject</h4></div>
           </div>
           
           
           <div class="row">
-            
+            <div class="col-sm-8"><h4>text/plain</h4></div>
           </div>
           
           <div class="row">
-            
+            <div class="col-sm-8">
+                
+            </div>
           </div>
+          
+          
+          <div class="row">
+            <div class="col-sm-8"><h4>text/html</h4></div>
+          </div>
+          
+          <div class="row">
+            <div class="col-sm-8">
+                <html><body>My HTML message</body></html>
+            </div>
+          </div>
+          
           
           
         </div>

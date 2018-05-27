@@ -10,23 +10,39 @@
 
 <div class="container-fluid">
   <div class="row">
-    <div class="col-sm-4">From: {{ sent_from }}</div>
-    <div class="col-sm-4">To: {{ ", ".join(sent_to) }}</div>
+    <div class="col-sm-4"><h4>From: {{ sent_from }}</h4></div>
+    <div class="col-sm-4"><h4>To: {{ ", ".join(sent_to) }}</h4></div>
   </div>
   <div class="row">
-    <div class="col-sm-8">Subject: {{ subject }}</div>
+    <div class="col-sm-8"><h4>Subject: {{ subject }}</h4></div>
   </div>
   {% if multipart %}
   {% for part in payload %}
   <div class="row">
-    {% if part['Content-Type'] == 'text/html' %}
-    {{ part['content'] }}
-    {% endif %}
+    <div class="col-sm-8"><h4>{{ part['content-type'] }}</h4></div>
   </div>
+  {% if part['content-type'] == 'text/html' %}
+  <div class="row">
+    <div class="col-sm-8">
+        {{ part['content'] }}
+    </div>
+  </div>
+  {% else %}
+  <div class="row">
+    <div class="col-sm-8">
+        {{ part['content'] }}
+    </div>
+  </div>
+  {% endif %}
   {% endfor %}
   {% else %}
   <div class="row">
+     <div class="col-sm-8"><h4>Plaintext email</h4></div>
+  </div>
+  <div class="row">
+    <div class="col-sm-8">
     {{ payload }}
+    </div>
   </div>
   {% endif %}
 </div>

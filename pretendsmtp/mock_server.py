@@ -33,10 +33,12 @@ class MockSMTPServer(smtpd.SMTPServer):
         if parsed_message.is_multipart():
             payload = []
             for message in parsed_message.get_payload():
-                payload_dict = dict(message)
+                payload_dict = dict()
                 payload_dict['filename'] = message.get_filename()
+                payload_dict['content-type'] = message.get_content_type()
+                payload_dict['content-charset'] = message.get_content_charset()
                 payload_dict['transfer-encoding'] = message.get("Content-Transfer-Encoding")
-                payload_dict = message.get_payload(decode=True).decode('utf8')
+                payload_dict['content'] = message.get_payload(decode=True).decode('utf8')
                 payload.append(payload_dict)
         else:
             payload = parsed_message.get_payload(decode=True).decode('utf8')
