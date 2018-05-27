@@ -68,31 +68,31 @@ Receive HTML email:
 
         <div class="container-fluid">
           <div class="row">
-            <div class="col-sm-4"><h4>From: alice@example.org</h4></div>
-            <div class="col-sm-4"><h4>To: bob@example.org</h4></div>
+            <div class="col-sm-6 bg-primary"><h4>From: alice@example.org</h4></div>
+            <div class="col-sm-6 bg-primary"><h4>To: bob@example.org</h4></div>
           </div>
           <div class="row">
-            <div class="col-sm-8"><h4>Subject: My subject</h4></div>
+            <div class="col-sm-12 bg-primary"><h4>Subject: My subject</h4></div>
           </div>
           
           
           <div class="row">
-            <div class="col-sm-8"><h4>text/plain</h4></div>
+            <div class="col-sm-12"><h4>text/plain</h4></div>
           </div>
           
           <div class="row">
-            <div class="col-sm-8">
+            <div class="col-sm-12">
                 
             </div>
           </div>
           
           
           <div class="row">
-            <div class="col-sm-8"><h4>text/html</h4></div>
+            <div class="col-sm-12"><h4>text/html</h4></div>
           </div>
           
           <div class="row">
-            <div class="col-sm-8">
+            <div class="col-sm-12">
                 <html><body>My HTML message</body></html>
             </div>
           </div>
