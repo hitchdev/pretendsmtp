@@ -16,9 +16,19 @@
   <div class="row">
     <div class="col-sm-8">Subject: {{ subject }}</div>
   </div>
+  {% if multipart %}
+  {% for part in payload %}
+  <div class="row">
+    {% if part['Content-Type'] == 'text/html' %}
+    {{ part['content'] }}
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% else %}
   <div class="row">
     {{ payload }}
   </div>
+  {% endif %}
 </div>
 </body>
 </html>

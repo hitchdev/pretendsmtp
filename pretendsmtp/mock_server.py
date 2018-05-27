@@ -24,19 +24,22 @@ class MockSMTPServer(smtpd.SMTPServer):
     def process_message(self, host, email_from, email_to, data, **kwargs):
         """Parse SMTP message and log it to the console as JSON."""
         if sys.version_info[0:2] >= (3, 6):
-            parsed_message = Parser().parsestr(data.decode('utf8'))
+            raw_message = data.decode('utf8')
         else:
-            parsed_message = Parser().parsestr(data)
+            raw_message = data
+
+        parsed_message = Parser().parsestr(raw_message)
 
         if parsed_message.is_multipart():
             payload = []
             for message in parsed_message.get_payload():
                 payload_dict = dict(message)
                 payload_dict['filename'] = message.get_filename()
-                payload_dict['content'] = message.get_payload(decode=True).decode("utf-8")
+                payload_dict['transfer-encoding'] = message.get("Content-Transfer-Encoding")
+                payload_dict = message.get_payload(decode=True).decode('utf8')
                 payload.append(payload_dict)
         else:
-            payload = parsed_message.get_payload()
+            payload = parsed_message.get_payload(decode=True).decode('utf8')
 
         header_from = parsed_message.get('From')
         header_to = parsed_message.get('To')
@@ -75,6 +78,9 @@ class MockSMTPServer(smtpd.SMTPServer):
         }
 
         self.counter = self.counter + 1
+
+        Path("{0}.data".format(self.counter)).write_text(raw_message)
+
         Path("{0}.message".format(self.counter)).write_text(
             json.dumps(dict_message, indent=4)
         )

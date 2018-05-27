@@ -32,10 +32,10 @@ Receive plain text email:
             "header_from_email": null,
             "header_to_email": null,
             "subject": "my subject",
-            "date": "Sat, 26 May 2018 08:59:25 +0000",
+            "date": "Sat, 26 May 2018 09:00:00 +0000",
             "contenttype": "text/plain",
             "multipart": false,
-            "payload": "bXkgbWVzc2FnZQ=="
+            "payload": "my message"
         }
 
   - HTML File present:
@@ -59,9 +59,11 @@ Receive plain text email:
           <div class="row">
             <div class="col-sm-8">Subject: my subject</div>
           </div>
+          
           <div class="row">
-            bXkgbWVzc2FnZQ==
+            my message
           </div>
+          
         </div>
         </body>
         </html>

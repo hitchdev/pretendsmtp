@@ -14,7 +14,6 @@ Receive HTML email:
       to mails:
       - bob@example.org
       subject: My subject
-      plain message: Plain message alternative
       html message: <html><body>My HTML message</body></html>
       port: 10025
   - Sleep: 0.5
@@ -33,24 +32,12 @@ Receive HTML email:
             "header_from_email": null,
             "header_to_email": null,
             "subject": "My subject",
-            "date": "Sat, 26 May 2018 08:59:02 +0000",
+            "date": "Sat, 26 May 2018 09:00:00 +0000",
             "contenttype": "multipart/alternative",
             "multipart": true,
             "payload": [
-                {
-                    "Content-Type": "text/plain; charset=\"utf-8\"",
-                    "MIME-Version": "1.0",
-                    "Content-Transfer-Encoding": "base64",
-                    "filename": null,
-                    "content": "Plain message alternative"
-                },
-                {
-                    "Content-Type": "text/html; charset=\"utf-8\"",
-                    "MIME-Version": "1.0",
-                    "Content-Transfer-Encoding": "base64",
-                    "filename": null,
-                    "content": "<html><body>My HTML message</body></html>"
-                }
+                "",
+                "<html><body>My HTML message</body></html>"
             ]
         }
 
@@ -75,9 +62,17 @@ Receive HTML email:
           <div class="row">
             <div class="col-sm-8">Subject: My subject</div>
           </div>
+          
+          
           <div class="row">
-            [{'Content-Type': 'text/plain; charset="utf-8"', 'MIME-Version': '1.0', 'Content-Transfer-Encoding': 'base64', 'filename': None, 'content': 'Plain message alternative'}, {'Content-Type': 'text/html; charset="utf-8"', 'MIME-Version': '1.0', 'Content-Transfer-Encoding': 'base64', 'filename': None, 'content': '<html><body>My HTML message</body></html>'}]
+            
           </div>
+          
+          <div class="row">
+            
+          </div>
+          
+          
         </div>
         </body>
         </html>

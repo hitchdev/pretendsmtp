@@ -81,12 +81,19 @@ class Engine(BaseEngine):
 
         assert filepath.exists(), "{0} does not exist".format(filename)
 
+        def processed_json(text):
+            snippet = json.loads(text)
+            snippet['date'] = "Sat, 26 May 2018 09:00:00 +0000"
+            return snippet
+
         try:
-            assert json.loads(content) == json.loads(filepath.text()), \
-              "Expected:\n {0}\n\nGot:\n\n{1}\n".format(
-                  content,
-                  filepath.text(),
-              )
+            actual_content = processed_json(filepath.text())
+
+            assert json.loads(content) == actual_content, \
+                "Expected:\n {0}\n\nGot:\n\n{1}\n".format(
+                    content,
+                    filepath.text(),
+                )
         except json.decoder.JSONDecodeError:
             try:
                 json.loads(content)
@@ -96,15 +103,19 @@ class Engine(BaseEngine):
             try:
                 json.loads(filepath.text())
             except json.decoder.JSONDecodeError:
-                raise AssertionError("ACTUAL:\n\n{0}\n\nis not JSON".format(filepath.text()))
+                raise AssertionError("ACTUAL:\n\n{0}\n\nis not JSON".format(
+                    json.dumps(actual_content, indent=4)
+                ))
 
         except AssertionError:
             if self.settings.get("rewrite"):
                 self.current_step.update(
-                    **{"content": json.dumps(json.loads(filepath.text()), indent=4)}
+                    **{"content": json.dumps(actual_content, indent=4)}
                 )
             else:
-                raise AssertionError("{0} is nonmatching:\n\n{1}".format(filepath.text(), content))
+                raise AssertionError("{0} is nonmatching:\n\n{1}".format(
+                    json.dumps(actual_content, indent=4), content)
+                )
 
     @expected_exception(AssertionError)
     def html_file_present(self, filename, content):
@@ -137,7 +148,7 @@ class Engine(BaseEngine):
     @expected_exception(smtplib.SMTPServerDisconnected)
     @validate(to_mails=Seq(Str()), port=Int())
     def send_email(
-        self, port, subject, from_mail, to_mails, plain_message, html_message=None,
+        self, port, subject, from_mail, to_mails, plain_message=None, html_message=None,
     ):
         from mailer import Mailer
         from mailer import Message
