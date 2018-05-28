@@ -56,16 +56,22 @@ class Engine(BaseEngine):
         self.path.state.mkdir()
         self.path.state.joinpath("mail").mkdir()
 
-        self.python = project_build(
+        self.build = project_build(
             self.path,
             self.given.get('python version', '3.6.5'),
-        ).bin.python
+        )
+        self.python = self.build.bin.python
+        self.pretendsmtp = self.build.bin.pretendsmtp
 
         self.example_py_code = ExamplePythonCode(self.python, self.path.state)\
             .with_code(self.given.get('code', ''))\
             .with_setup_code(self.given.get('setup', ''))\
             .with_terminal_size(500, 500)\
             .with_long_strings()
+
+    @validate(args=Seq(Str()))
+    def run_pretendsmtp(self, args):
+        self.pretendsmtp(*args).in_dir(self.path.state/"mail").run()
 
     @expected_exception(icommandlib.exceptions.ICommandError)
     @expected_exception(HitchRunPyException)

@@ -39,6 +39,46 @@ def main():
         sys.stdout.write("SMTP SERVER RUNNING\n")
         sys.stdout.flush()
         asyncore.loop()
+    elif sys.argv[1] == "forwardlast":
+        import argparse
+        import json
+        parser = argparse.ArgumentParser()
+        parser.add_argument("command", help="what to make pretendsmtp do")
+        parser.add_argument("host", help="SMTP host")
+        parser.add_argument("--username", type=str, help="SMTP username")
+        parser.add_argument("--password", type=str, help="SMTP password")
+        parser.add_argument("--port", type=int, help="SMTP port")
+        parser.add_argument("--from_email", type=str, help="Address to forward email from")
+        parser.add_argument("--to_email", type=str, help="Address to forward email to")
+        args = parser.parse_args()
+        last_email_number = max([
+            int(filepath.basename().splitext()[0])
+            for filepath in Path(".").listdir("*.message")
+        ])
+        email_data = json.loads(Path("{0}.message".format(last_email_number)).text())
+        import smtplib
+
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.multipart import MIMEBase
+
+        message = MIMEMultipart('alternative')
+
+        for part in email_data['payload']:
+            maintype, subtype = part['content-type'].split("/")
+            mimepart = MIMEBase(maintype, subtype)
+            mimepart.set_payload(part['content'])
+            message.attach(mimepart)
+
+        message['Subject'] = email_data['subject']
+        message['From'] = args.from_email
+        message['To'] = args.to_email
+
+        smtp_server = smtplib.SMTP(
+            args.host,
+            port=args.port,
+        )
+        smtp_server.send_message(message)
+        smtp_server.quit()
     else:
         sys.stderr.write("Usage : pretendsmtp server 10025")
         sys.exit(1)
