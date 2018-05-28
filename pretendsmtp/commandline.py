@@ -77,6 +77,12 @@ def main():
             args.host,
             port=args.port,
         )
+        
+        if args.username is not None:
+            smtp_server.ehlo()
+            smtp_server.starttls()
+            smtp_server.login(args.username, args.password)
+
         smtp_server.send_message(message)
         smtp_server.quit()
     else:
