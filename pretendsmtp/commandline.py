@@ -27,12 +27,13 @@ def main():
 
         INCLUDE_PATH.copytree(Path(os.getcwd()) / "include")
 
-        smtp_server = MockSMTPServer(('localhost', port_number), None)
+        smtp_server = MockSMTPServer(("localhost", port_number), None)
 
         def signal_handler(signal, frame):
-            print('')
+            print("")
             smtp_server.close()
             sys.exit(0)
+
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
 
@@ -42,13 +43,16 @@ def main():
     elif sys.argv[1] == "forwardlast":
         import argparse
         import json
+
         parser = argparse.ArgumentParser()
         parser.add_argument("command", help="what to make pretendsmtp do")
         parser.add_argument("host", help="SMTP host")
         parser.add_argument("--username", type=str, help="SMTP username")
         parser.add_argument("--password", type=str, help="SMTP password")
         parser.add_argument("--port", type=int, help="SMTP port")
-        parser.add_argument("--from_email", type=str, help="Address to forward email from")
+        parser.add_argument(
+            "--from_email", type=str, help="Address to forward email from"
+        )
         parser.add_argument("--to_email", type=str, help="Address to forward email to")
         args = parser.parse_args()
 
@@ -56,32 +60,31 @@ def main():
             sys.stderr.write("No emails to send.\n")
             sys.exit(1)
 
-        last_email_number = max([
-            int(filepath.basename().splitext()[0])
-            for filepath in Path(".").listdir("*.message")
-        ])
+        last_email_number = max(
+            [
+                int(filepath.basename().splitext()[0])
+                for filepath in Path(".").listdir("*.message")
+            ]
+        )
         email_data = json.loads(Path("{0}.message".format(last_email_number)).text())
         import smtplib
 
         from email.mime.multipart import MIMEMultipart
         from email.mime.multipart import MIMEBase
 
-        message = MIMEMultipart('alternative')
+        message = MIMEMultipart("alternative")
 
-        for part in email_data['payload']:
-            maintype, subtype = part['content-type'].split("/")
+        for part in email_data["payload"]:
+            maintype, subtype = part["content-type"].split("/")
             mimepart = MIMEBase(maintype, subtype)
-            mimepart.set_payload(part['content'])
+            mimepart.set_payload(part["content"])
             message.attach(mimepart)
 
-        message['Subject'] = email_data['subject']
-        message['From'] = args.from_email
-        message['To'] = args.to_email
+        message["Subject"] = email_data["subject"]
+        message["From"] = args.from_email
+        message["To"] = args.to_email
 
-        smtp_server = smtplib.SMTP(
-            args.host,
-            port=args.port,
-        )
+        smtp_server = smtplib.SMTP(args.host, port=args.port)
 
         if args.username is not None:
             smtp_server.ehlo()

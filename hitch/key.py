@@ -1,7 +1,7 @@
 from hitchstory import StoryCollection, StorySchema, BaseEngine, HitchStoryException
 from hitchstory import validate, expected_exception
 from hitchrun import expected
-from commandlib import Command, CommandError, python
+from commandlib import Command, CommandError, python, python_bin
 from strictyaml import Str, Map, Seq, Int, Bool, Optional, load
 from pathquery import pathquery
 from hitchrun import hitch_maintenance
@@ -411,3 +411,7 @@ def rerun(version="3.5.0"):
     Command(DIR.gen.joinpath("py{0}".format(version), "bin", "python"))(
         DIR.gen.joinpath("state", "examplepythoncode.py")
     ).in_dir(DIR.gen.joinpath("state")).run()
+
+
+def black():
+    python_bin.black(DIR.project / "pretendsmtp").run()

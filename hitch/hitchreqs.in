@@ -17,3 +17,4 @@ jupyter_console
 twine
 simex
 q
+black
