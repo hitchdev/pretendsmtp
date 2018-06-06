@@ -273,7 +273,9 @@ def regression():
     lint()
     storybook = _storybook({}).only_uninherited()
     storybook.with_params(**{"python version": "3.6.3"}).ordered_by_name().play()
-    storybook.with_params(**{"python version": "3.5.0"}).ordered_by_name().play()
+    _storybook({}).only_uninherited().with_params(
+        **{"python version": "3.5.0"}
+    ).ordered_by_name().play()
 
 
 def lint():
