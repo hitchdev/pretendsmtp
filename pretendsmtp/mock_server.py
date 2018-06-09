@@ -110,8 +110,14 @@ class MockSMTPServer(smtpd.SMTPServer):
             )
         )
 
-        sys.stdout.write(json.dumps(dict_message))
-        sys.stdout.write("\n")
+        sys.stdout.write(
+            "SENT from '{}' to '{}' about '{}' see at file://{}.\n".format(
+                email_from,
+                email_to,
+                parsed_message.get("Subject"),
+                Path("{0}.html".format(self.counter)).abspath(),
+            )
+        )
         sys.stdout.flush()
 
         """
